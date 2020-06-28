@@ -34,7 +34,7 @@ def z2_h_region(time, viewWindow):
         for j in range(0, viewWindow[1]):
             h_vals[i][j] = h_lattice(t, np.array([0, 0]), np.array([i, j]))
     return h_vals
-#returns values for H(t,(0,0),y) for a specified window size.
+#returns values for H(t,(0,0),y) for some window size.
 
 
 @jit
