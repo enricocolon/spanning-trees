@@ -56,15 +56,43 @@ def corrector(array, n):
 
 
 @jit
+def discoverBoundary(matrix):
+    border_index_pairs = []
+    sgnmatrix = np.sign(matrix)
+    #collect row/col pairs
+    #matrix[:,:-1] takes off last col. matrix[:,1:] takes off first col.
+    #if max[i][j] neq 0, {(i,j),(i+1,j)} on border. Same principle with rows
+    #for {(i,j),(i,j+1)}.
+    row_border_matrix = sgnmatrix[:,:-1]-sgnmatrix[:,1:]
+    row_border_matrix = np.append(row_border_matrix, np.zeros((len(row_border_matrix),1)), axis=1)
+    col_border_matrix = sgnmatrix[:-1]-sgnmatrix[1:]
+    col_border_matrix = np.append(col_border_matrix, np.zeros((1,len(col_border_matrix[0]))), axis=0)
+    row_border_indices = np.argwhere(row_border_matrix !=0)
+    col_border_indices = np.argwhere(col_border_matrix !=0)
+    for row_border_index in row_border_indices:
+        border_index_pairs = border_index_pairs + [((row_border_index[0],row_border_index[1]),
+                                                   (row_border_index[0]+1,row_border_index[1]))]
+    for col_border_index in col_border_indices:
+        border_index_pairs = border_index_pairs + [((row_border_index[0],row_border_index[1]),
+                                                   (row_border_index[0],row_border_index[1]+1))]
+    return border_index_pairs, row_border_indices, col_border_indices
+
+
+A = np.array([[1,2,-3],[4,-5,-6],[-7,-8,-9]])
+
+print(discoverBoundary(A))
+#print(discoverBoundary(z2_h_region_2(10000, 50, np.array([47,47]), np.array([53,45]))))
+
+@jit
 def Q(function, z1, z2):
 
     return
 
 
-ax = plt.axes()
-
-sns.heatmap(z2_h_region_2(10000, 50, np.array([47,47]), np.array([53,45])), ax=ax, cmap="RdBu")
-ax.set_xlabel("x$_1$")
-ax.set_ylabel("x$_2$")
-ax.set_title("H(t,x,z)-H(t,x,z')")
-plt.show()
+#ax = plt.axes()
+#
+#sns.heatmap(z2_h_region_2(10000, 50, np.array([47,47]), np.array([53,45])), ax=ax, cmap="RdBu")
+#ax.set_xlabel("x$_1$")
+#ax.set_ylabel("x$_2$")
+#ax.set_title("H(t,x,z)-H(t,x,z')")
+#plt.show()
