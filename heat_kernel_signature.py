@@ -58,7 +58,9 @@ def corrector(array, n):
 @jit
 def discoverBoundary(matrix):
     border_index_pairs = []
+    sgns = []
     sgnmatrix = np.sign(matrix)
+    sgnmatrix[sgnmatrix == 0] = 1 #although possibly adding error, this eliminates border thickness errors.
     #collect row/col pairs
     #matrix[:,:-1] takes off last col. matrix[:,1:] takes off first col.
     #if max[i][j] neq 0, {(i,j),(i+1,j)} on border. Same principle with rows
@@ -73,17 +75,23 @@ def discoverBoundary(matrix):
         border_index_pairs = border_index_pairs + [((row_border_index[0],row_border_index[1]),
                                                     (row_border_index[0],row_border_index[1]+1))]
     for col_border_index in col_border_indices:
-        border_index_pairs = border_index_pairs + [((col_border_index[0],col_border_index[1]),
-                                                    (col_border_index[0]+1,col_border_index[1]))]
+        border_index_pairs = border_index_pairs + [((col_border_index[0]+1,col_border_index[1]),
+                                                    (col_border_index[0],col_border_index[1]))]
+    for pair in border_index_pairs:
+        sgns = sgns + [(np.sign(matrix[pair[0][0]][pair[0][1]]), np.sign(matrix[pair[1][0]][pair[1][1]]))]
+    if (int(sgns[0][0]) == -1):
+        bip = np.flip(border_index_pairs, axis=1)
+    else:
+        bip = np.array(border_index_pairs)
+    return bip
 
-    return border_index_pairs
 
-
-test_border = discoverBoundary(z2_h_region_2(10000, 50, np.array([53,45]), np.array([60,40])))
+test_border = discoverBoundary(z2_h_region_2(10000, 50, np.array([60,40]), np.array([53,45])))
 A = np.zeros((102,102))
 for a in test_border:
-    A[a[0][0]][a[0][1]] = 1
     A[a[1][0]][a[1][1]] = -1
+    A[a[0][0]][a[0][1]] = 1
+
 
 print(test_border)
 sns.heatmap(A, cmap="RdBu")
