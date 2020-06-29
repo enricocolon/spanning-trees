@@ -71,17 +71,23 @@ def discoverBoundary(matrix):
     col_border_indices = np.argwhere(col_border_matrix !=0)
     for row_border_index in row_border_indices:
         border_index_pairs = border_index_pairs + [((row_border_index[0],row_border_index[1]),
-                                                   (row_border_index[0]+1,row_border_index[1]))]
+                                                    (row_border_index[0],row_border_index[1]+1))]
     for col_border_index in col_border_indices:
-        border_index_pairs = border_index_pairs + [((row_border_index[0],row_border_index[1]),
-                                                   (row_border_index[0],row_border_index[1]+1))]
-    return border_index_pairs, row_border_indices, col_border_indices
+        border_index_pairs = border_index_pairs + [((col_border_index[0],col_border_index[1]),
+                                                    (col_border_index[0]+1,col_border_index[1]))]
+
+    return border_index_pairs
 
 
-A = np.array([[1,2,-3],[4,-5,-6],[-7,-8,-9]])
+test_border = discoverBoundary(z2_h_region_2(10000, 50, np.array([53,45]), np.array([60,40])))
+A = np.zeros((102,102))
+for a in test_border:
+    A[a[0][0]][a[0][1]] = 1
+    A[a[1][0]][a[1][1]] = -1
 
-print(discoverBoundary(A))
-#print(discoverBoundary(z2_h_region_2(10000, 50, np.array([47,47]), np.array([53,45]))))
+print(test_border)
+sns.heatmap(A, cmap="RdBu")
+plt.show()
 
 @jit
 def Q(function, z1, z2):
