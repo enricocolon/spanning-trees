@@ -3,6 +3,7 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import seaborn as sns
 from numba import jit, cuda
+import scipy
 
 
 @jit
@@ -32,7 +33,7 @@ def z2_h_region(time, viewWindow):
     h_vals = np.empty((viewWindow[0], viewWindow[1]))
     for i in range(0, viewWindow[0]):
         for j in range(0, viewWindow[1]):
-            h_vals[i][j] = h_lattice(t, np.array([0, 0]), np.array([i, j]))
+            h_vals[i][j] = h_lattice(t, np.array([np.floor(viewWindow[0]/2), np.floor(viewWindow[1]/2)]), np.array([i, j]))
     return h_vals
 #returns values for H(t,(0,0),y) for some window size.
 
@@ -86,16 +87,12 @@ def discoverBoundary(matrix):
     return bip
 
 
-test_border = discoverBoundary(z2_h_region_2(10000, 50, np.array([60,40]), np.array([53,45])))
-A = np.zeros((102,102))
-for a in test_border:
-    A[a[1][0]][a[1][1]] = -1
-    A[a[0][0]][a[0][1]] = 1
+#test_border = discoverBoundary(z2_h_region_2(10000, 50, np.array([60,40]), np.array([53,45])))
+#A = np.zeros((102,102))
+#for a in test_border:
+#    A[a[1][0]][a[1][1]] = -1
+#    A[a[0][0]][a[0][1]] = 1
 
-
-print(test_border)
-sns.heatmap(A, cmap="RdBu")
-plt.show()
 
 @jit
 def Q(function, z1, z2):
@@ -103,10 +100,11 @@ def Q(function, z1, z2):
     return
 
 
-#ax = plt.axes()
-#
-#sns.heatmap(z2_h_region_2(10000, 50, np.array([47,47]), np.array([53,45])), ax=ax, cmap="RdBu")
-#ax.set_xlabel("x$_1$")
-#ax.set_ylabel("x$_2$")
-#ax.set_title("H(t,x,z)-H(t,x,z')")
-#plt.show()
+
+ax = plt.axes()
+
+sns.heatmap(z2_h_region(1000,np.array([101, 101])), ax=ax)
+ax.set_xlabel("x$_1$")
+ax.set_ylabel("x$_2$")
+ax.set_title("H(t,x,y)")
+plt.show()
