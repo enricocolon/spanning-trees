@@ -1,8 +1,10 @@
 import numpy as np
 import scipy.integrate as integrate
+import scipy.linalg as linalg
 import matplotlib.pyplot as plt
 import seaborn as sns
 from numba import jit, cuda
+from collections import Counter
 import scipy
 
 
@@ -93,6 +95,107 @@ def discoverBoundary(matrix):
 #    A[a[1][0]][a[1][1]] = -1
 #    A[a[0][0]][a[0][1]] = 1
 
+matExp = np.array([[2, -1, -1, 0],[-1, 2, 0, -1],[-1, 0, 2, -1],[0, -1, -1, 2]])
+
+def matExp(t):
+    return linalg.expm(-t*matExp)
+
+print(integrate.trapz(matExp, 0, 1))
+
+#if directed, arrows point for edge (u,v) u ---> v
+class Graph:
+    def __init__(self, vertices, edges):
+        self.vertices = vertices
+        self.edges = edges
+
+@jit
+def getIncidence(graph):
+    matrix = np.zeros((len(graph.vertices), len(graph.edges)), dtype=int)
+    for i in range(0, len(graph.edges)):
+        matrix[graph.vertices.index(graph.edges[i][0])][i] = 1
+        matrix[graph.vertices.index(graph.edges[i][1])][i] = -1
+    return matrix
+
+
+@jit
+def getLaplacian(graph):
+    incidence = np.array(getIncidence(graph))
+    matrix = np.dot(incidence, incidence.T)
+    return matrix
+
+
+@jit
+def getT_matrix_neghalf(graph):
+    #flat refers to flat array of vertices. reshaping and converting to hashable dtype
+    T = np.zeros((len(graph.vertices), len(graph.vertices)))
+    flat = np.ndarray.flatten(np.array(graph.edges))
+    flat = np.reshape(flat, (int(len(flat)/2),2))
+    flat_array = []
+    for i in flat:
+        flat_array = flat_array + [tuple(i)]
+    flat_array = tuple(flat_array)
+    counter = Counter(flat_array)
+    for i in range(0, len(graph.vertices)):
+        T[i][i] = (counter[graph.vertices[i]]**(-.5))
+    return T
+
+
+@jit
+def getScriptLaplacian(graph):
+    LTneghalf = np.dot(getLaplacian(graph), getT_matrix_neghalf(graph))
+    scriptL = np.dot(getT_matrix_neghalf(graph), LTneghalf)
+    return scriptL
+
+
+#WIP #input is array of vertices as tuples
+
+@jit
+def getS_Z2(vertices):
+    edges = []
+    for i in vertices:
+        for j in [np.array((0, 1)), np.array((0, -1)), np.array((1,0)), np.array((-1, 0))]:
+            #if (np.array(i)+j)
+            edges = edges + [(i, tuple(np.array(i)+j))]
+    for e in range(0, len(edges)):
+        if (edges[e][1], edges[e][0]) in edges:
+            edges.remove((edges[e][1], edges[e][0]))
+    return edges
+
+
+#indexes increasing y, then increasing x.
+@jit
+def getRectS_Z2(lowerLeft, upperRight):
+    if upperRight[0] < lowerLeft[0]:
+        return None
+    elif upperRight[1] < lowerLeft[1]:
+        return None
+    vertices = []
+    edges = []
+    width = np.abs(upperRight[0]-lowerLeft[0])
+    height = np.abs(upperRight[1]-lowerLeft[1])
+    for i in range(0, width+1):
+        for j in range(0, height+1):
+            vertices = vertices + [tuple(np.array(lowerLeft)+np.array([i,j]))]
+    for i in range(0, width):
+        for j in range(0, height):
+            edges = edges + [(((i,j),(i+1,j)))]+[(((i,j),(i,j+1)))]
+    for i in range(0, width):
+        edges = edges + [((i, height),(i+1, height))]
+    for j in range(0, height):
+        edges = edges + [((width, j),(width, j+1))]
+    S = Graph(vertices, edges)
+    return S
+
+
+
+
+#print(getScriptLaplacian(getRectS_Z2((0,0),(3,2))))
+#print(getLaplacian(Graph([1,2,3,4,5],[(1,2),(5,2)])))
+
+@jit
+def generate_S(vertices):
+
+    return
 
 @jit
 def Q(function, z1, z2):
@@ -101,10 +204,10 @@ def Q(function, z1, z2):
 
 
 
-ax = plt.axes()
+#ax = plt.axes()
 
-sns.heatmap(z2_h_region(1000,np.array([101, 101])), ax=ax)
-ax.set_xlabel("x$_1$")
-ax.set_ylabel("x$_2$")
-ax.set_title("H(t,x,y)")
-plt.show()
+#sns.heatmap(z2_h_region(1000,np.array([101, 101])), ax=ax)
+#ax.set_xlabel("x$_1$")
+#ax.set_ylabel("x$_2$")
+#ax.set_title("H(t,x,y)")
+#plt.show()
