@@ -229,7 +229,9 @@ def getWorstCaseSubgraph(lowerLeft, upperRight):
     return wcs
 
 
-A = getWorstCaseSubgraph((-2,-2),(2,2))
+def shortWCS(n):
+    A = getWorstCaseSubgraph((1-n,-n),(n,n))
+    return A
 
 #print(z2_h_differences(getWorstCaseSubgraph((-2,-2),(2,2)), (0,0))(1))
 ##print(integrate.quad(heat_kernel_S_function(getWorstCaseSubgraph((-2,-2),(2,2)), (0,0), (0,0), 1), 0, 1))
@@ -250,7 +252,9 @@ def Qh(subgraph, t, x, y):
     return sum
 
 
-print(Qh(A, 1, (0,0), (-1,0)))
+#consider Qh(t, (0,0), (-1,0)) over our potential worst case graph, where the
+#argument of shortWCS is the "thickness of the donut" (n-2 edges from inside donut to out)
+print(Qh(shortWCS(7), 1, (0,0), (-1,0)))
 
 
 @jit
