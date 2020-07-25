@@ -13,6 +13,7 @@ def integrand(x, a, t, dim):
     return np.exp(-2*(t/dim)*np.sin(x)**2)*np.cos(2*a*x)
 
 
+#only works for 2d. easy fix.
 @jit
 def h_lattice(time, x_vert, y_vert):
     dim = len(x_vert)
@@ -74,7 +75,7 @@ def getScriptLaplacian(graph):
     return scriptL
 
 
-def heat_kernel_S_function(subgraph, x, y, t):
+def heat_kernel_S_function(subgraph, t, x, y):
     scriptLaplacian = getScriptLaplacian(subgraph)
     def heat_kernel(s):
         h_of_t = linalg.expm(-1*(t-s)*scriptLaplacian)[subgraph.vertices.index(x)][subgraph.vertices.index(y)]
@@ -244,7 +245,7 @@ def Qh(subgraph, t, x, y):
     sum = 0
     for pairs in zzprimes:
         def integrand(s):
-            h_funct = heat_kernel_S_function(subgraph, x, y, t)
+            h_funct = heat_kernel_S_function(subgraph, t, x, y)
             diff_funct = z2_h_diff(subgraph, pairs[0], pairs[1], y)
             return h_funct(s)*diff_funct(s)
         sum = sum + integrate.quad(integrand, 0, t)[0]
@@ -254,7 +255,7 @@ def Qh(subgraph, t, x, y):
 
 #consider Qh(t, (0,0), (-1,0)) over our potential worst case graph, where the
 #argument of shortWCS is the "thickness of the donut" (n-2 edges from inside donut to out)
-print(Qh(shortWCS(7), 1, (0,0), (-1,0)))
+print(Qh(shortWCS(8), 10, (-1,0), (0,0)))
 
 
 @jit
