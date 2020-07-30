@@ -17,7 +17,7 @@ def integrand(x, a, t, dim):
 @jit
 def h_lattice(time, x_vert, y_vert):
     dim = len(x_vert)
-    diff = [np.absolute(x_vert[0]-y_vert[0]), np.absolute(x_vert[1]-y_vert[1])]
+    diff = [np.absolute(x_vert[i]-y_vert[i]) for i in range(0, len(x_vert))]
     h_inf_paths = np.empty(0)
     h_tot = 1
     t = time
@@ -27,9 +27,9 @@ def h_lattice(time, x_vert, y_vert):
         h_inf_paths = np.append(h_inf_paths, h_int)
         h_tot = h_tot*h_int
     return h_tot
+
+
 #returns H given t,x,y in R^2
-
-
 #if directed, arrows point for edge (u,v) u ---> v
 class Graph:
     def __init__(self, vertices, edges):
@@ -253,9 +253,26 @@ def Qh(subgraph, t, x, y):
     return sum
 
 
+
+def QH(subgraph, t, x, y):
+    zzprimes = getDsZ2(subgraph)
+    sum = 0
+    for pairs in zzprimes:
+        def integrand(s):
+            h_funct = h_lattice(t-s,x,y)
+            diff_funct = z2_h_diff(subgraph, pairs[0], pairs[1], y)
+            return h_funct*diff_funct(s)
+        sum = sum + integrate.quad(integrand, 0, t)[0]
+    sum = .25*sum
+    return sum
+
+
+
 #consider Qh(t, (0,0), (-1,0)) over our potential worst case graph, where the
 #argument of shortWCS is the "thickness of the donut" (n-2 edges from inside donut to out)
-print(Qh(shortWCS(8), 10, (-1,0), (0,0)))
+
+
+print(QH(shortWCS(8), 10, (-1,1), (0,1)))
 
 
 @jit
